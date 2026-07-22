@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Panic Button</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#221D3B;
+    --twilight:#3B3363;
+    --twilight-soft:#4A4179;
+    --ember:#F0A868;
+    --ember-soft:#F6C79A;
+    --mist:#F5F1EA;
+    --sage:#8FBCA0;
+    --whisper:#B0A8CC;
+    --danger:#E28B7D;
+    --radius:22px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at 50% -10%, var(--twilight-soft), var(--ink) 60%);
+    color:var(--mist);
+    font-family:'Figtree', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    letter-spacing:-0.01em;
+  }
+  .app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100vh;
+    padding:0 24px 48px;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+  .screen{
+    display:none;
+    flex-direction:column;
+    animation:fadeIn .5s ease;
+    flex:1;
+  }
+  .screen.active{display:flex;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* Top bar */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 0 8px;
+  }
+  .back-btn{
+    background:none;
+    border:none;
+    color:var(--whisper);
+    font-family:'Figtree',sans-serif;
+    font-size:15px;
+    cursor:pointer;
+    padding:8px 0;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  .back-btn:hover{color:var(--mist);}
+  .emergency-link{
+    background:none;
+    border:1px solid rgba(226,139,125,0.4);
+    color:var(--danger);
+    font-size:13px;
+    font-family:'Figtree',sans-serif;
+    padding:6px 14px;
+    border-radius:100px;
+    cursor:pointer;
+  }
+  .emergency-link:hover{background:rgba(226,139,125,0.12);}
+
+  /* Home */
+  .home-hero{
+    text-align:center;
+    padding:48px 0 8px;
+  }
+  .breath-orb{
+    width:130px;
+    height:130px;
+    margin:0 auto 28px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--ember-soft), var(--ember) 65%, transparent 75%);
+    box-shadow:0 0 60px 10px rgba(240,168,104,0.25);
+    animation:ambientBreath 7s ease-in-out infinite;
+  }
+  @keyframes ambientBreath{
+    0%,100%{transform:scale(0.92); opacity:0.85;}
+    50%{transform:scale(1.05); opacity:1;}
+  }
+  .home-hero h1{
+    font-size:34px;
+    margin:0 0 10px;
+    letter-spacing:0.01em;
+  }
+  .home-hero p{
+    color:var(--whisper);
+    font-size:16px;
+    margin:0 0 36px;
+    line-height:1.5;
+  }
+  .btn{
+    display:block;
+    width:100%;
+    border:none;
+    border-radius:100px;
+    padding:18px 24px;
+    font-family:'Figtree',sans-serif;
+    font-size:17px;
+    font-weight:600;
+    cursor:pointer;
+    text-align:center;
+    margin-bottom:14px;
+    transition:transform .15s ease, filter .15s ease;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{
+    background:linear-gradient(135deg, var(--ember), #E9945A);
+    color:var(--ink);
+    font-size:18px;
+    padding:22px 24px;
+    box-shadow:0 8px 30px -8px rgba(240,168,104,0.5);
+  }
+  .btn-primary:hover{filter:brightness(1.05);}
+  .btn-secondary{
+    background:var(--twilight-soft);
+    color:var(--mist);
+    font-weight:500;
+  }
+  .btn-secondary:hover{background:#544B87;}
+  .btn-ghost{
+    background:transparent;
+    border:1.5px solid rgba(176,168,204,0.35);
+    color:var(--mist);
+    font-weight:500;
+  }
+  .btn-ghost:hover{border-color:var(--whisper);}
+  .home-menu{margin-top:8px;}
+
+  /* Panic entry */
+  .reassure-line{
+    font-family:'Fraunces',serif;
+    font-size:24px;
+    line-height:1.4;
+    text-align:center;
+    padding:20px 6px 32px;
+    color:var(--mist);
+  }
+  .symptom-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:20px;
+  }
+  .symptom-btn{
+    background:var(--twilight);
+    border:1px solid rgba(176,168,204,0.18);
+    border-radius:16px;
+    color:var(--mist);
+    padding:16px 14px;
+    font-family:'Figtree',sans-serif;
+    font-size:14.5px;
+    font-weight:500;
+    text-align:left;
+    line-height:1.35;
+    cursor:pointer;
+  }
+  .symptom-btn:hover{background:var(--twilight-soft); border-color:rgba(176,168,204,0.35);}
+
+  /* Flow steps */
+  .flow-body{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:12px 0 24px;
+  }
+  .flow-eyebrow{
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:12px;
+    color:var(--whisper);
+    margin-bottom:14px;
+  }
+  .flow-text{
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    line-height:1.5;
+    margin:0 0 30px;
+    max-width:420px;
+  }
+  .flow-sub{
+    color:var(--whisper);
+    font-size:15px;
+    line-height:1.6;
+    margin:-14px 0 28px;
+    max-width:400px;
+  }
+
+  /* Breathing exercise */
+  .breathe-orb-wrap{
+    width:220px;
+    height:220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:8px 0 30px;
+  }
+  .breathe-orb{
+    width:150px;
+    height:150px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--ember-soft), var(--ember) 65%, transparent 78%);
+    box-shadow:0 0 80px 16px rgba(240,168,104,0.3);
+    transition:transform 3.8s cubic-bezier(.45,0,.55,1), opacity 3.8s ease;
+  }
+  .breathe-phase{
+    font-family:'Fraunces',serif;
+    font-size:20px;
+    margin-bottom:8px;
+  }
+  .breathe-count{
+    color:var(--whisper);
+    font-size:14px;
+    margin-bottom:34px;
+  }
+
+  /* Grounding cards */
+  .ground-card{
+    background:var(--twilight);
+    border-radius:var(--radius);
+    padding:28px 24px;
+    max-width:420px;
+    margin-bottom:24px;
+  }
+  .ground-card .step-label{
+    font-size:12px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ember-soft);
+    margin-bottom:10px;
+  }
+  .ground-card p{
+    font-family:'Fraunces',serif;
+    font-size:19px;
+    line-height:1.5;
+    margin:0;
+  }
+
+  /* Check-in */
+  .checkin-btns{
+    display:flex;
+    gap:12px;
+    width:100%;
+    max-width:360px;
+  }
+  .checkin-btns .btn{margin-bottom:0;}
+
+  /* Info / library */
+  .info-card{
+    background:var(--twilight);
+    border-radius:18px;
+    padding:20px 22px;
+    margin-bottom:14px;
+  }
+  .info-card h3{
+    font-size:17px;
+    margin:0 0 10px;
+    color:var(--ember-soft);
+  }
+  .info-card .label{
+    font-size:12px;
+    color:var(--whisper);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin:12px 0 4px;
+  }
+  .info-card p{
+    font-size:14.5px;
+    line-height:1.55;
+    margin:0;
+    color:var(--mist);
+  }
+  .info-card .medical-flag{
+    border-left:2px solid var(--danger);
+    padding-left:12px;
+    margin-top:12px;
+  }
+
+  /* Coming soon */
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+  }
+  .empty-state .breath-orb{width:80px;height:80px;margin-bottom:24px;opacity:0.7;}
+  .empty-state h2{font-size:22px;margin-bottom:10px;}
+  .empty-state p{color:var(--whisper); font-size:15px; line-height:1.6; margin-bottom:28px;}
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(15,12,28,0.7);
+    backdrop-filter:blur(4px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    z-index:50;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal{
+    background:var(--twilight);
+    border-radius:20px;
+    padding:28px 26px;
+    max-width:380px;
+    width:100%;
+  }
+  .modal h3{margin:0 0 6px; font-size:19px; color:var(--danger);}
+  .modal p{font-size:14.5px; line-height:1.6; color:var(--mist); margin:0 0 16px;}
+  .modal .btn{margin-bottom:10px;}
+
+  ::selection{background:var(--ember); color:var(--ink);}
+  a{color:var(--ember-soft);}
+
+  @media (prefers-reduced-motion: reduce){
+    .breath-orb, .breathe-orb{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="home-hero">
+      <div class="breath-orb"></div>
+      <h1>The Panic Button</h1>
+      <p>A calm companion when anxiety<br>feels overwhelming.</p>
+    </div>
+    <button class="btn btn-primary" onclick="showScreen('screen-panic-entry')">I'M PANICKING RIGHT NOW</button>
+    <div class="home-menu">
+      <button class="btn btn-secondary" onclick="showScreen('screen-reassurance')">I need reassurance</button>
+      <button class="btn btn-secondary" onclick="showScreen('screen-library')">Learn about anxiety</button>
+      <button class="btn btn-ghost" onclick="showEmpty('Your Calm Plan', 'A personalized set of tools built around what actually helps you is on its way. For now, everything you need is one tap away on the home screen.')">Build my calm plan</button>
+      <button class="btn btn-ghost" onclick="showEmpty('My Progress', 'Once you start using The Panic Button, this is where you\'ll see your patterns over time. Nothing to track yet — and that\'s okay.')">My progress</button>
+    </div>
+    <div style="text-align:center; margin-top:8px;">
+      <button class="emergency-link" onclick="openModal()">Emergency resources</button>
+    </div>
+  </div>
+
+  <!-- COMING SOON (shared) -->
+  <div class="screen" id="screen-empty">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-home')">‹ Home</button>
+    </div>
+    <div class="empty-state">
+      <div class="breath-orb"></div>
+      <h2 id="empty-title"></h2>
+      <p id="empty-body"></p>
+      <button class="btn btn-secondary" onclick="showScreen('screen-home')">Back to home</button>
+    </div>
+  </div>
+
+  <!-- REASSURANCE -->
+  <div class="screen" id="screen-reassurance">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-home')">‹ Home</button>
+    </div>
+    <div class="flow-body">
+      <div class="breathe-orb-wrap" style="width:140px;height:140px;">
+        <div class="breath-orb" style="width:100px;height:100px;"></div>
+      </div>
+      <p class="flow-text" id="reassure-text">Panic attacks are frightening, but they are not dangerous. They peak and pass, usually within 10 to 20 minutes.</p>
+      <button class="btn btn-secondary" style="max-width:280px;" onclick="nextReassurance()">Tell me another</button>
+    </div>
+  </div>
+
+  <!-- PANIC ENTRY: symptom picker -->
+  <div class="screen" id="screen-panic-entry">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-home')">‹ Home</button>
+      <button class="emergency-link" onclick="openModal()">Emergency</button>
+    </div>
+    <p class="reassure-line">This feels frightening, but you are not alone. Let's get through the next minute together.</p>
+    <p style="text-align:center; color:var(--whisper); font-size:14px; margin:-14px 0 18px;">What are you noticing right now?</p>
+    <div class="symptom-grid" id="symptom-grid"></div>
+  </div>
+
+  <!-- FLOW: step 1 reassurance for chosen symptom -->
+  <div class="screen" id="screen-flow-reassure">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-panic-entry')">‹ Back</button>
+      <button class="emergency-link" onclick="openModal()">Emergency</button>
+    </div>
+    <div class="flow-body">
+      <div class="flow-eyebrow" id="flow-symptom-label"></div>
+      <p class="flow-text" id="flow-reassure-text"></p>
+      <p class="flow-sub" id="flow-sub-text"></p>
+      <button class="btn btn-primary" style="max-width:280px;" onclick="showScreen('screen-breathe')">Breathe with me</button>
+    </div>
+  </div>
+
+  <!-- FLOW: medical-concern branch -->
+  <div class="screen" id="screen-medical">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-panic-entry')">‹ Back</button>
+      <button class="emergency-link" onclick="openModal()">Emergency</button>
+    </div>
+    <div class="flow-body" style="text-align:left; align-items:stretch;">
+      <p class="flow-text" style="text-align:center;">Feeling like something is medically wrong is one of the most frightening parts of panic.</p>
+      <div class="ground-card" style="max-width:100%; border-left:2px solid var(--danger);">
+        <div class="step-label" style="color:var(--danger);">Call 911 now if you have</div>
+        <p style="font-size:16px;">Crushing chest pain, pain spreading to your arm or jaw, severe trouble breathing, fainting, or trouble speaking or moving one side of your body.</p>
+      </div>
+      <div class="ground-card">
+        <p style="font-size:15px; color:var(--whisper); font-family:'Figtree',sans-serif; text-align:left;">If none of those apply, what you're feeling is very likely your body's alarm system firing when there's no real danger. That's still real and still hard — let's help your body find its way back to calm.</p>
+      </div>
+      <button class="btn btn-primary" onclick="showScreen('screen-breathe')">Breathe with me</button>
+    </div>
+  </div>
+
+  <!-- BREATHING EXERCISE -->
+  <div class="screen" id="screen-breathe">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-panic-entry')">‹ Exit</button>
+      <button class="emergency-link" onclick="openModal()">Emergency</button>
+    </div>
+    <div class="flow-body">
+      <div class="breathe-phase" id="breathe-phase">Breathe in</div>
+      <div class="breathe-count" id="breathe-count">4</div>
+      <div class="breathe-orb-wrap">
+        <div class="breathe-orb" id="breathe-orb"></div>
+      </div>
+      <button class="btn btn-secondary" style="max-width:280px;" onclick="stopBreathing(); showScreen('screen-ground')">I feel a little steadier</button>
+    </div>
+  </div>
+
+  <!-- GROUNDING -->
+  <div class="screen" id="screen-ground">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-breathe')">‹ Back</button>
+      <button class="emergency-link" onclick="openModal()">Emergency</button>
+    </div>
+    <div class="flow-body">
+      <div class="flow-eyebrow">Grounding</div>
+      <div class="ground-card" id="ground-card">
+        <div class="step-label" id="ground-step-label"></div>
+        <p id="ground-step-text"></p>
+      </div>
+      <button class="btn btn-primary" style="max-width:280px;" onclick="nextGroundStep()" id="ground-next-btn">Next</button>
+    </div>
+  </div>
+
+  <!-- CHECK IN -->
+  <div class="screen" id="screen-checkin">
+    <div class="flow-body">
+      <div class="breath-orb" style="width:90px; height:90px; margin-bottom:26px;"></div>
+      <p class="flow-text">How do you feel right now?</p>
+      <div class="checkin-btns">
+        <button class="btn btn-secondary" onclick="showCheckinResponse(true)">A little better</button>
+        <button class="btn btn-secondary" onclick="showCheckinResponse(false)">Still hard</button>
+      </div>
+      <p class="flow-sub" id="checkin-response" style="margin-top:24px;"></p>
+      <button class="btn btn-ghost" style="max-width:280px; display:none;" id="checkin-home-btn" onclick="showScreen('screen-home')">Return home</button>
+    </div>
+  </div>
+
+  <!-- LIBRARY -->
+  <div class="screen" id="screen-library">
+    <div class="topbar">
+      <button class="back-btn" onclick="showScreen('screen-home')">‹ Home</button>
+    </div>
+    <h2 style="text-align:center; margin:6px 0 4px;">What's happening in your body</h2>
+    <p style="text-align:center; color:var(--whisper); font-size:14px; margin:0 0 24px;">Anxiety is uncomfortable, not dangerous. Here's why it feels the way it does.</p>
+    <div id="library-list"></div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>If you need help right now</h3>
+    <p><strong>Medical emergency</strong> (chest pain that won't ease, trouble breathing, fainting, one-sided weakness): call <strong>911</strong>.</p>
+    <p><strong>Thoughts of harming yourself:</strong> call or text <strong>988</strong> (Suicide & Crisis Lifeline), available 24/7 in the US.</p>
+    <p style="color:var(--whisper);">This app is a companion, not a replacement for medical or mental health care.</p>
+    <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+/* ---------- Screen navigation ---------- */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function openModal(){ document.getElementById('modal-overlay').classList.add('active'); }
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('active'); }
+function showEmpty(title, body){
+  document.getElementById('empty-title').textContent = title;
+  document.getElementById('empty-body').textContent = body;
+  showScreen('screen-empty');
+}
+
+/* ---------- Reassurance carousel ---------- */
+const reassurances = [
+  "Panic attacks are frightening, but they are not dangerous. They peak and pass, usually within 10 to 20 minutes.",
+  "Your body is doing exactly what it's built to do when it senses threat — even when there's no real danger present.",
+  "You have gotten through every panic attack you've ever had. This one is no different.",
+  "Racing heart, tight chest, shaky hands — uncomfortable, but not harmful. This will pass.",
+  "You don't have to make the fear go away. You just have to wait it out, and it will settle on its own."
+];
+let reassureIndex = 0;
+function nextReassurance(){
+  reassureIndex = (reassureIndex + 1) % reassurances.length;
+  document.getElementById('reassure-text').textContent = reassurances[reassureIndex];
+}
+
+/* ---------- Symptom paths ---------- */
+const symptoms = [
+  { id:'heart', label:"My heart is racing", medical:false,
+    reassure:"A racing heart during panic is your body's alarm system, not your heart failing you.",
+    sub:"Adrenaline speeds your heart to prepare you to run from danger that isn't actually there. It will slow back down.",
+    ground:'sensory' },
+  { id:'breath', label:"I can't catch my breath", medical:false,
+    reassure:"Feeling like you can't get enough air is one of the most common — and most frightening — panic sensations.",
+    sub:"Panic often causes quick, shallow breathing that can feel like suffocation even though your oxygen levels are fine.",
+    ground:'body' },
+  { id:'medical', label:"I think something is medically wrong", medical:true },
+  { id:'dizzy', label:"I feel dizzy", medical:false,
+    reassure:"Dizziness during panic usually comes from quick breathing changing the balance of gases in your blood.",
+    sub:"It feels alarming, but it's a temporary side effect of how your body is breathing right now — not a sign you're about to faint.",
+    ground:'sensory' },
+  { id:'shaking', label:"I'm shaking", medical:false,
+    reassure:"Shaking is adrenaline moving through your muscles, getting your body ready for a threat that isn't really there.",
+    sub:"It can feel like you're losing control of your body. You're not — this will ease as the adrenaline clears.",
+    ground:'body' },
+  { id:'night', label:"I woke up panicking", medical:false,
+    reassure:"Waking up in a panic is disorienting, but your body can trigger this alarm even during sleep for no clear reason.",
+    sub:"You're safe in this moment. Let's slow things down together before you try to rest again.",
+    ground:'sensory' },
+  { id:'driving', label:"I'm panicking while driving", medical:false,
+    reassure:"If it's safe to do so, consider pulling over. You don't have to push through this alone at the wheel.",
+    sub:"Panic while driving is common and it does not mean you're unsafe behind the wheel — it means your alarm system is misfiring.",
+    ground:'body' },
+  { id:'public', label:"I'm panicking in public", medical:false,
+    reassure:"What you're feeling is far less visible to others than it feels to you right now.",
+    sub:"You don't need to explain or hide it perfectly. It's okay to just quietly ride this out.",
+    ground:'sensory' },
+  { id:'thoughts', label:"My thoughts won't stop", medical:false,
+    reassure:"Racing thoughts during panic can feel like they're spiraling out of control, but thoughts are not facts and not dangers.",
+    sub:"You don't have to solve or answer every thought right now. Just notice them passing.",
+    ground:'thoughts' },
+];
+
+const grid = document.getElementById('symptom-grid');
+symptoms.forEach(s => {
+  const btn = document.createElement('button');
+  btn.className = 'symptom-btn';
+  btn.textContent = s.label;
+  btn.onclick = () => selectSymptom(s.id);
+  grid.appendChild(btn);
+});
+
+let currentSymptom = null;
+function selectSymptom(id){
+  currentSymptom = symptoms.find(s => s.id === id);
+  if(currentSymptom.medical){
+    showScreen('screen-medical');
+    return;
+  }
+  document.getElementById('flow-symptom-label').textContent = currentSymptom.label;
+  document.getElementById('flow-reassure-text').textContent = currentSymptom.reassure;
+  document.getElementById('flow-sub-text').textContent = currentSymptom.sub;
+  showScreen('screen-flow-reassure');
+}
+
+/* ---------- Breathing exercise (box breathing: in 4, hold 4, out 6) ---------- */
+const phases = [
+  { name:'Breathe in', seconds:4, scale:1.35 },
+  { name:'Hold', seconds:4, scale:1.35 },
+  { name:'Breathe out', seconds:6, scale:0.85 },
+];
+let breatheTimer = null;
+let phaseIdx = 0;
+let countdown = 4;
+
+function startBreathing(){
+  phaseIdx = 0;
+  runPhase();
+}
+function runPhase(){
+  const phase = phases[phaseIdx];
+  document.getElementById('breathe-phase').textContent = phase.name;
+  countdown = phase.seconds;
+  document.getElementById('breathe-count').textContent = countdown;
+  const orb = document.getElementById('breathe-orb');
+  orb.style.transitionDuration = phase.seconds + 's';
+  orb.style.transform = `scale(${phase.scale})`;
+
+  clearInterval(breatheTimer);
+  breatheTimer = setInterval(() => {
+    countdown--;
+    if(countdown > 0){
+      document.getElementById('breathe-count').textContent = countdown;
+    } else {
+      clearInterval(breatheTimer);
+      phaseIdx = (phaseIdx + 1) % phases.length;
+      runPhase();
+    }
+  }, 1000);
+}
+function stopBreathing(){
+  clearInterval(breatheTimer);
+}
+
+/* ---------- Grounding sequences ---------- */
+const groundSets = {
+  sensory: [
+    "Name 5 things you can see around you right now. Let your eyes move slowly from one to the next.",
+    "Name 4 things you can physically feel — your feet on the floor, the air on your skin, the fabric under your hands.",
+    "Name 3 things you can hear right now, near or far.",
+    "Name 2 things you can smell, or two things you like the smell of.",
+    "Name 1 thing you can taste, or take one slow sip of water.",
+    "You just walked your senses through the present moment. That's where you are — here, now, safe."
+  ],
+  body: [
+    "Unclench your jaw. Let your tongue rest away from the roof of your mouth.",
+    "Drop your shoulders away from your ears, even just a little.",
+    "Gently shake out your hands, like you're flicking water off your fingertips.",
+    "Press your feet firmly into the floor and notice the ground holding you up.",
+    "Take one long exhale, longer than feels necessary.",
+    "Your body is starting to get the message that it's safe to stand down."
+  ],
+  thoughts: [
+    "You don't need to answer the thoughts racing through your mind right now.",
+    "Try labeling what's happening: 'This is my mind trying to protect me by overthinking.'",
+    "Picture each thought as a car passing on a street. You're on the sidewalk. You don't have to get in.",
+    "If a thought loops back, that's normal — just notice it again and let it keep passing.",
+    "You are not your thoughts right now. You're the one watching them go by.",
+    "This will quiet down. It always does."
+  ]
+};
+let groundStepIdx = 0;
+function enterGrounding(){
+  groundStepIdx = 0;
+  showGroundStep();
+}
+function showGroundStep(){
+  const type = currentSymptom ? currentSymptom.ground : 'sensory';
+  const set = groundSets[type];
+  const label = type === 'sensory' ? 'Sensory grounding' : type === 'body' ? 'Body release' : 'Thought labeling';
+  document.getElementById('ground-step-label').textContent = `${label} — step ${groundStepIdx+1} of ${set.length}`;
+  document.getElementById('ground-step-text').textContent = set[groundStepIdx];
+  document.getElementById('ground-next-btn').textContent = groundStepIdx === set.length - 1 ? "How am I doing?" : "Next";
+}
+function nextGroundStep(){
+  const type = currentSymptom ? currentSymptom.ground : 'sensory';
+  const set = groundSets[type];
+  if(groundStepIdx < set.length - 1){
+    groundStepIdx++;
+    showGroundStep();
+  } else {
+    showScreen('screen-checkin');
+    document.getElementById('checkin-response').textContent = '';
+    document.getElementById('checkin-home-btn').style.display = 'none';
+  }
+}
+
+/* ---------- Check-in ---------- */
+function showCheckinResponse(better){
+  const el = document.getElementById('checkin-response');
+  el.textContent = better
+    ? "That's real progress. You did that — not the app, you. Keep breathing slowly as you go about the next few minutes."
+    : "That's okay. Panic doesn't always follow a clean timeline. You can go through the breathing and grounding again, or just sit with this for a bit longer — you're not doing it wrong.";
+  document.getElementById('checkin-home-btn').style.display = 'block';
+}
+
+/* hook breathing + grounding start into screen changes */
+const originalShowScreen = showScreen;
+showScreen = function(id){
+  originalShowScreen(id);
+  if(id === 'screen-breathe') startBreathing();
+  else stopBreathing();
+  if(id === 'screen-ground') enterGrounding();
+};
+
+/* ---------- Body sensation library ---------- */
+const library = [
+  { name:"Racing heart", why:"Adrenaline signals your heart to pump faster to prepare your body to fight or flee.", when:"Common at the start of a panic wave, or when a worrying thought crosses your mind.", helps:"Slow exhale-focused breathing and reminding yourself this is adrenaline, not danger.", flag:"Chest pain that's crushing or spreading to your arm/jaw, or a heartbeat that stays very fast with fainting." },
+  { name:"Chest tightness", why:"Shallow, quick breathing during panic tenses the muscles around your ribs and chest.", when:"Often paired with a racing heart or shortness of breath.", helps:"Slow, deep belly breathing and gently rolling your shoulders back.", flag:"Pain that's sharp, crushing, or comes with sweating, nausea, or pain down your arm." },
+  { name:"Dizziness", why:"Fast breathing shifts the carbon dioxide level in your blood, which can make you feel lightheaded.", when:"Usually during the breathless, racing-thoughts phase of a panic wave.", helps:"Slowing your breathing down and sitting or leaning against something stable.", flag:"Dizziness with slurred speech, one-sided weakness, or fainting." },
+  { name:"Tingling or numbness", why:"Rapid breathing changes blood chemistry in a way that can make hands, feet, or lips feel tingly.", when:"Often shows up a minute or two into a panic wave.", helps:"Slowing your breath rate and cupping your hands loosely over your mouth and nose for a few breaths.", flag:"Numbness on only one side of the body, or numbness with slurred speech." },
+  { name:"Feeling detached", why:"Called derealization or depersonalization — your brain's way of dampening an overwhelming moment.", when:"Common during intense or prolonged anxiety.", helps:"Naming things you can see, touch, and hear to reconnect with the present.", flag:"This alone is rarely dangerous, but mention it to a doctor if it happens often or lasts long after anxiety fades." },
+  { name:"Nausea or stomach upset", why:"Stress hormones slow digestion and redirect blood flow away from your stomach.", when:"Can build gradually or hit suddenly with other panic symptoms.", helps:"Sipping cool water slowly and breathing through your nose.", flag:"Severe abdominal pain, vomiting blood, or nausea with chest pain." },
+];
+const libList = document.getElementById('library-list');
+library.forEach(item => {
+  const card = document.createElement('div');
+  card.className = 'info-card';
+  card.innerHTML = `
+    <h3>${item.name}</h3>
+    <div class="label">Why it happens</div><p>${item.why}</p>
+    <div class="label">When it shows up</div><p>${item.when}</p>
+    <div class="label">What usually helps</div><p>${item.helps}</p>
+    <div class="medical-flag"><div class="label" style="color:var(--danger);">Get it checked if</div><p>${item.flag}</p></div>
+  `;
+  libList.appendChild(card);
+});
+</script>
+</body>
+</html>
